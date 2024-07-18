@@ -7,8 +7,8 @@ import requests
 app = Flask(__name__)
 
 # Channel secret และ access token ของคุณ
-LINE_CHANNEL_ACCESS_TOKEN = 'YOUR_CHANNEL_ACCESS_TOKEN'
-LINE_CHANNEL_SECRET = 'YOUR_CHANNEL_SECRET'
+LINE_CHANNEL_ACCESS_TOKEN = 'BqT2qUiV7shCikgDoy+iLzbNt9/d20lVdNGAnC3g+0hOn0ocA8O/WPUvv4MsNFFRjQFqrsllocCC0SGj+37TbvmpxpQJGVGyIxNrQy2ej6QWVezckV9+6tXq/4QjcXmm298xz1iellFbdBvdW2HUbQdB04t89/1O/w1cDnyilFU='
+LINE_CHANNEL_SECRET = 'ed710f52069b6235ca3a134d5a59bac4'
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
