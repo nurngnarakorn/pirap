@@ -1,17 +1,42 @@
 from flask import Flask, request, abort
-from linebot import WebhookHandler, LineBotApi
+from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 import requests
+import os
+from datetime import datetime
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-# Channel secret และ access token ของคุณ
-LINE_CHANNEL_ACCESS_TOKEN = 'BqT2qUiV7shCikgDoy+iLzbNt9/d20lVdNGAnC3g+0hOn0ocA8O/WPUvv4MsNFFRjQFqrsllocCC0SGj+37TbvmpxpQJGVGyIxNrQy2ej6QWVezckV9+6tXq/4QjcXmm298xz1iellFbdBvdW2HUbQdB04t89/1O/w1cDnyilFU='
-LINE_CHANNEL_SECRET = 'ed710f52069b6235ca3a134d5a59bac4'
+# Load environment variables from .env file
+load_dotenv()
+
+# Read secrets from environment variables
+LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
+LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+
+# Database setup
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///links.db')
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base = declarative_base()
+
+class Link(Base):
+    __tablename__ = 'links'
+    id = Column(Integer, primary_key=True)
+    url = Column(String, unique=True)
+    is_alive = Column(Boolean, default=True)
+    checked_at = Column(DateTime)
+
+Base.metadata.create_all(engine)
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -28,7 +53,7 @@ def callback():
 
 def is_link_alive(url):
     try:
-        response = requests.head(url, allow_redirects=True)
+        response = requests.head(url, allow_redirects=True, timeout=5)
         return response.status_code == 200
     except requests.RequestException:
         return False
@@ -37,6 +62,13 @@ def is_link_alive(url):
 def handle_message(event):
     text = event.message.text
     if text.startswith('http'):
+        # Save link to database
+        link = session.query(Link).filter_by(url=text).first()
+        if not link:
+            link = Link(url=text)
+            session.add(link)
+            session.commit()
+        # Check link immediately
         if not is_link_alive(text):
             line_bot_api.reply_message(
                 event.reply_token,

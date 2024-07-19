@@ -19,11 +19,14 @@ line-bot-sdk==3.11.0
 MarkupSafe==2.1.5
 multidict==6.0.5
 packaging==24.1
+psycopg2-binary==2.9.9
 pydantic==2.8.2
 pydantic_core==2.20.1
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 requests==2.31.0
 six==1.16.0
+SQLAlchemy==2.0.31
 typing_extensions==4.12.2
 urllib3==2.2.2
 Werkzeug==3.0.3
